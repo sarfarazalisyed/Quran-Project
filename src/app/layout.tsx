@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Navbar } from "@/components/layout/navbar";
+import { FullAudioPlayer } from "@/components/quran/full-audio-player";
 import "./globals.css";
 
 const inter = Inter({
@@ -69,6 +70,8 @@ export default function RootLayout({
           <Navbar />
           <main className="flex-1 pt-16 pb-20 md:pb-0">{children}</main>
         </TooltipProvider>
+
+        <FullAudioPlayer />
 
         {/* JSON-LD Structured Data for AEO / SEO */}
         <script
