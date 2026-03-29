@@ -17,7 +17,20 @@ import {
   Heart,
   LogIn,
   Moon,
+  LogOut,
+  User as UserIcon,
 } from "lucide-react";
+import { createClient } from "@/utils/supabase/client";
+import { User } from "@supabase/supabase-js";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuGroup,
+} from "@/components/ui/dropdown-menu";
 
 const navLinks = [
   { href: "/quran", label: "Quran", icon: BookOpen },
@@ -31,6 +44,27 @@ export function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const supabase = createClient();
+
+  useEffect(() => {
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -106,12 +140,41 @@ export function Navbar() {
               <Heart className="w-4 h-4" />
               Donate
             </Button>
-            <Link href="/login">
-              <Button variant="outline" size="sm" className="gap-1.5" id="nav-login">
-                <LogIn className="w-4 h-4" />
-                Sign In
-              </Button>
-            </Link>
+            {authLoading ? (
+              <div className="w-8 h-8 rounded-full border-2 border-primary/20 border-t-primary animate-spin ml-2" />
+            ) : user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex h-8 items-center gap-2 px-2 rounded-md hover:bg-primary/5 focus:outline-none transition-colors">
+                  <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">
+                    {user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0) || <UserIcon className="w-4 h-4" />}
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.user_metadata?.full_name || "User"}</p>
+                        <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => {
+                    supabase.auth.signOut();
+                  }}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link href="/login">
+                <Button variant="outline" size="sm" className="gap-1.5" id="nav-login">
+                  <LogIn className="w-4 h-4" />
+                  Sign In
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -173,12 +236,27 @@ export function Navbar() {
                     Donate
                   </Button>
 
-                  <Link href="/login" className="mx-4 mt-1">
-                    <Button variant="default" className="w-full gap-2">
-                      <LogIn className="w-4 h-4" />
-                      Sign In
+                  {authLoading ? (
+                    <div className="mx-4 mt-1 flex justify-center py-2">
+                      <div className="w-6 h-6 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+                    </div>
+                  ) : user ? (
+                    <Button 
+                      variant="ghost" 
+                      className="mx-4 mt-1 gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => supabase.auth.signOut()}
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign Out ({user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]})
                     </Button>
-                  </Link>
+                  ) : (
+                    <Link href="/login" className="mx-4 mt-1">
+                      <Button variant="default" className="w-full gap-2">
+                        <LogIn className="w-4 h-4" />
+                        Sign In
+                      </Button>
+                    </Link>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>

@@ -1,0 +1,25 @@
+# Quran Project — Quran Reading & Learning Platform
+
+## About
+The most accessible Quran reading platform for global Muslims,
+Urdu-speaking users, kids, and non-Muslims exploring Islam.
+Includes Arabic text, word-by-word translation, audio recitations,
+and topic explanations.
+
+## Content
+- Complete Quran: all 114 surahs, 6,236 verses
+- Translations: English (Sahih International)
+- Audio: 10 reciters with word-level synchronisation
+- Topics: patience, prayer, fasting, forgiveness, family, justice
+
+## Key URL patterns
+- /surah/{1-114}             Full surah page
+- /verse/{surah}/{ayah}      Individual verse deep-dive
+- /reciter/{id}              Reciter profile
+- /faq                       Islamic questions answered
+
+## Languages
+Arabic (Uthmani script), English
+
+## Contact
+support@quran-project.com

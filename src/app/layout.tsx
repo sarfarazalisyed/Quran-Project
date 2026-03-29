@@ -64,7 +64,7 @@ export default function RootLayout({
         />
         <meta name="theme-color" content="#1a1a2e" />
       </head>
-      <body className="min-h-screen flex flex-col antialiased">
+      <body className="min-h-screen flex flex-col antialiased" suppressHydrationWarning>
         <TooltipProvider>
           <Navbar />
           <main className="flex-1 pt-16 pb-20 md:pb-0">{children}</main>
