@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -66,6 +67,8 @@ export function SurahReader({ surahId }: { surahId: number }) {
   const [playingAyah, setPlayingAyah] = useState<number | null>(null);
   const [copiedAyah, setCopiedAyah] = useState<number | null>(null);
   
+  const router = useRouter();
+  
   // Audio state
   const [reciterId, setReciterId] = useState<string>(TOP_RECITERS[0].id);
   const [showReciters, setShowReciters] = useState(false);
@@ -85,6 +88,17 @@ export function SurahReader({ surahId }: { surahId: number }) {
       }
     };
   }, [surahId]);
+
+  // Handle auto-play of next surah if passed via URL
+  useEffect(() => {
+    if (surah && !playingAyah && typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("playAyah") === "1") {
+        setPlayingAyah(1);
+        window.history.replaceState({}, '', `/quran/${surahId}`);
+      }
+    }
+  }, [surah]);
 
   async function fetchSurah() {
     setLoading(true);
@@ -129,7 +143,9 @@ export function SurahReader({ surahId }: { surahId: number }) {
     }
 
     // Direct url to cdn for ayah by global number
-    const audioUrl = `https://cdn.islamic.network/quran/audio/128/${reciterId}/${currentAyah.number}.mp3`;
+    const surahStr = String(surahId).padStart(3, '0');
+    const ayahStr = String(currentAyah.numberInSurah).padStart(3, '0');
+    const audioUrl = `https://everyayah.com/data/Abdul_Basit_Murattal_64kbps/${surahStr}${ayahStr}.mp3`;
     
     const audio = new Audio(audioUrl);
     
@@ -155,6 +171,11 @@ export function SurahReader({ surahId }: { surahId: number }) {
             return prev + 1;
           }
           if (loopMode === "surah") return 1;
+          
+          if (surahId < 114) {
+            router.push(`/quran/${surahId + 1}?playAyah=1`);
+            return null;
+          }
           return null;
         });
       }
@@ -180,7 +201,6 @@ export function SurahReader({ surahId }: { surahId: number }) {
 
     return () => {
       audio.pause();
-      audio.src = "";
     };
   }, [playingAyah, reciterId, surah, loopMode]);
 
@@ -417,7 +437,7 @@ export function SurahReader({ surahId }: { surahId: number }) {
               key={ayah.number}
               className={`p-6 sm:p-8 transition-all duration-300 ${
                 isPlaying 
-                  ? "border-primary shadow-lg shadow-primary/5 bg-primary/[0.03] scale-[1.01]" 
+                  ? "border-l-4 border-l-green-500 shadow-lg shadow-primary/5 bg-primary/[0.03] scale-[1.01]" 
                   : "hover:border-primary/20"
               }`}
               id={`ayah-${ayah.numberInSurah}`}
@@ -566,7 +586,7 @@ export function SurahReader({ surahId }: { surahId: number }) {
               </div>
               <div className="flex flex-col truncate">
                 <div className="font-semibold truncate">
-                  {surah.englishName} — Ayah {playingAyah}
+                  Surah {surah.englishName} • Ayah {playingAyah} of {surah.numberOfAyahs}
                 </div>
                 <div className="text-sm text-muted-foreground truncate">
                   {TOP_RECITERS.find(r => r.id === reciterId)?.name}
@@ -635,7 +655,7 @@ export function SurahReader({ surahId }: { surahId: number }) {
             {/* Mobile simplified info */}
             <div className="flex-1 flex sm:hidden justify-end">
                <div className="text-xs font-semibold px-3 py-1.5 bg-accent/50 rounded-full">
-                 Ayah {playingAyah}/{surah.numberOfAyahs}
+                 Ayah {playingAyah} of {surah.numberOfAyahs}
                </div>
             </div>
 

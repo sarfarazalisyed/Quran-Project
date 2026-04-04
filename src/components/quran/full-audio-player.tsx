@@ -113,7 +113,7 @@ export function FullAudioPlayer() {
   // If no surah is picked and not dismissed, just return null securely
   if (!currentSurah || !currentReciter || isDismissed) return null;
 
-  const audioSrc = `https://cdn.islamic.network/quran/audio/128/${currentReciter.id}/${currentSurah}.mp3`;
+  const audioSrc = `https://cdn.islamic.network/quran/audio-surah/128/${currentReciter.id}/${currentSurah}.mp3`;
 
   const formatTime = (time: number) => {
     if (isNaN(time)) return "0:00";
